@@ -1,7 +1,8 @@
-﻿using CityInfo.API.Models;
+﻿using CityInfo.API.Interface;
+using CityInfo.API.Models;
 
 namespace CityInfo.API {
-    public class CitiesDataBase {
+    public class CitiesDataBase : ICitiesDataBase {
         public List<CityDto> Cities { get; set; }
         // public static CitiesDataStore Current { get; } = new CitiesDataStore();
 

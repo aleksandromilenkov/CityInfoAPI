@@ -1,16 +1,19 @@
-﻿using CityInfo.API.Models;
+﻿using CityInfo.API.Interface;
+using CityInfo.API.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CityInfo.API.Controllers {
     [Route("api/cities/{cityId}/[controller]")]
     [ApiController]
     public class PointsOfInterestController : ControllerBase {
+        private readonly ICitiesDataBase _citiesDataBase;
+
+        public PointsOfInterestController(ICitiesDataBase citiesDataBase) {
+            _citiesDataBase = citiesDataBase;
+        }
         [HttpGet]
-        [ProducesResponseType(200, Type = typeof(List<PointOfInterestDto>))]
-        [ProducesResponseType(404)]
         public IActionResult GetPointsOfInterest([FromRoute] int cityId) {
-            var cities = new CitiesDataBase();
-            var city = cities.Cities.FirstOrDefault(c => c.Id == cityId);
+            var city = _citiesDataBase.Cities.FirstOrDefault(c => c.Id == cityId);
             if (city == null) {
                 return NotFound();
             }
@@ -18,11 +21,8 @@ namespace CityInfo.API.Controllers {
         }
 
         [HttpGet("{pointOfInterestId}", Name = "GetPointOfInterest")]
-        [ProducesResponseType(200, Type = typeof(PointOfInterestDto))]
-        [ProducesResponseType(404)]
         public IActionResult GetPointsOfInterest([FromRoute] int pointOfInterestId, int cityId) {
-            var cities = new CitiesDataBase();
-            var city = cities.Cities.FirstOrDefault(c => c.Id == cityId);
+            var city = _citiesDataBase.Cities.FirstOrDefault(c => c.Id == cityId);
             if (city == null) {
                 return NotFound();
             }
@@ -34,19 +34,16 @@ namespace CityInfo.API.Controllers {
         }
 
         [HttpPost]
-        [ProducesResponseType(201, Type = typeof(PointOfInterestDto))]
-        [ProducesResponseType(400)]
         public IActionResult CreatePointsOfInterest(int cityId, [FromBody] PointOfInterestForCreationDto pointOfInterest) {
             if (!ModelState.IsValid) {
                 return BadRequest();
             }
-            var cities = new CitiesDataBase();
-            var city = cities.Cities.FirstOrDefault(c => c.Id == cityId);
+            var city = _citiesDataBase.Cities.FirstOrDefault(c => c.Id == cityId);
             if (city == null) {
                 return NotFound();
             }
             // for now demo calculating the id:
-            var maxPointsOfInterestId = cities.Cities.SelectMany(c => c.PointsOfInterest).Max(p => p.Id);
+            var maxPointsOfInterestId = _citiesDataBase.Cities.SelectMany(c => c.PointsOfInterest).Max(p => p.Id);
             var newPointOfInterest = new PointOfInterestDto() {
                 Id = ++maxPointsOfInterestId,
                 Name = pointOfInterest.Name,
@@ -55,5 +52,29 @@ namespace CityInfo.API.Controllers {
             city.PointsOfInterest.Add(newPointOfInterest);
             return CreatedAtRoute("GetPointOfInterest", new { cityId = cityId, pointOfInterestId = newPointOfInterest.Id }, newPointOfInterest);
         }
+
+        [HttpPut("{pointOfInterestId}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        public IActionResult UpdatePointOfInterest(int cityId, int pointOfInterestId, PointOfInterestForUpdatingDto pointOfInterest) {
+            if (!ModelState.IsValid) {
+                return BadRequest();
+            }
+            var city = _citiesDataBase.Cities.FirstOrDefault(c => c.Id == cityId);
+            if (city == null) {
+                return NotFound();
+            }
+            // find point of interest:
+            var pointOfInterestFromStore = city.PointsOfInterest.FirstOrDefault(p => p.Id == pointOfInterestId);
+            if (pointOfInterestFromStore == null) {
+                return NotFound();
+            }
+
+            pointOfInterestFromStore.Name = pointOfInterest.Name;
+            pointOfInterestFromStore.Description = pointOfInterest.Description;
+            return NoContent();
+        }
+
     }
 }
