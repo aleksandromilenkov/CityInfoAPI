@@ -1,5 +1,6 @@
 ﻿using CityInfo.API.Interface;
 using CityInfo.API.Models;
+using CityInfo.API.Services;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,17 +9,30 @@ namespace CityInfo.API.Controllers {
     [ApiController]
     public class PointsOfInterestController : ControllerBase {
         private readonly ICitiesDataBase _citiesDataBase;
+        private readonly ILogger<PointsOfInterestController> _logger;
+        private readonly LocalMailService _mailService;
 
-        public PointsOfInterestController(ICitiesDataBase citiesDataBase) {
+        public PointsOfInterestController(ICitiesDataBase citiesDataBase, ILogger<PointsOfInterestController> logger, LocalMailService mailService) {
             _citiesDataBase = citiesDataBase;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _mailService = mailService ?? throw new ArgumentNullException(nameof(mailService)); ;
         }
+
+
         [HttpGet]
         public IActionResult GetPointsOfInterest([FromRoute] int cityId) {
-            var city = _citiesDataBase.Cities.FirstOrDefault(c => c.Id == cityId);
-            if (city == null) {
-                return NotFound();
+            try {
+                var city = _citiesDataBase.Cities.FirstOrDefault(c => c.Id == cityId);
+                if (city == null) {
+                    _logger.LogInformation($"City with id {cityId} cannot be found.");
+                    return NotFound();
+                }
+                return Ok(city.PointsOfInterest);
             }
-            return Ok(city.PointsOfInterest);
+            catch (Exception e) {
+                _logger.LogCritical($"Exception while getting points of interest for city with id {cityId}.");
+                return StatusCode(500, "A problem happened while handling your request.");
+            }
         }
 
         [HttpGet("{pointOfInterestId}", Name = "GetPointOfInterest")]
@@ -118,6 +132,9 @@ namespace CityInfo.API.Controllers {
                 return NotFound();
             }
             city.PointsOfInterest.Remove(pointOfInterestFromStore);
+            _mailService.Send(
+               "Point of interest deleted.",
+               $"Point of interest {pointOfInterestFromStore.Name} with id {pointOfInterestFromStore.Id} was deleted.");
             return NoContent();
         }
 
