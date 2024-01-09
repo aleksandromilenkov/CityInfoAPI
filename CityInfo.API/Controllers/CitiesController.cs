@@ -1,4 +1,5 @@
-﻿using CityInfo.API.Interface;
+﻿using AutoMapper;
+using CityInfo.API.Interface;
 using CityInfo.API.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,23 +8,17 @@ namespace CityInfo.API.Controllers {
     [ApiController]
     public class CitiesController : ControllerBase {
         private readonly ICityInfoRepository _cityInfoRepository;
+        private readonly IMapper _mapper;
 
-        public CitiesController(ICityInfoRepository cityInfoRepository) {
+        public CitiesController(ICityInfoRepository cityInfoRepository, IMapper mapper) {
             _cityInfoRepository = cityInfoRepository;
+            _mapper = mapper;
         }
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<CityWithoutPointOfInterestDto>))]
         public async Task<IActionResult> GetCities() {
-            var cities = await _cityInfoRepository.GetCitiesAsync();
-            var results = new List<CityWithoutPointOfInterestDto>();
-            foreach (var city in cities) {
-                results.Add(new CityWithoutPointOfInterestDto {
-                    Id = city.Id,
-                    Name = city.Name,
-                    Description = city.Description
-                });
-            }
-            return Ok(results);
+            var cities = _mapper.Map<IEnumerable<CityWithoutPointOfInterestDto>>(await _cityInfoRepository.GetCitiesAsync());
+            return Ok(cities);
         }
         [HttpGet("{cityId:int}")]
         public async Task<IActionResult> GetCity([FromRoute] int cityId) {
