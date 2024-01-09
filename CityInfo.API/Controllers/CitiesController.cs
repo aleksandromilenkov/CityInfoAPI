@@ -21,15 +21,20 @@ namespace CityInfo.API.Controllers {
             return Ok(cities);
         }
         [HttpGet("{cityId:int}")]
-        public async Task<IActionResult> GetCity([FromRoute] int cityId) {
+        public async Task<IActionResult> GetCity([FromRoute] int cityId, [FromQuery] bool includePointsOfInterest = false) {
             if (cityId <= 0) {
                 return BadRequest(ModelState);
             }
-            var city = await _cityInfoRepository.GetCityAsync(cityId, true);
+            var city = await _cityInfoRepository.GetCityAsync(cityId, includePointsOfInterest);
             if (city == null) {
                 return NotFound();
             }
-            return Ok(city);
+            if (includePointsOfInterest) {
+                return Ok(_mapper.Map<CityDto>(city));
+            }
+            else {
+                return Ok(_mapper.Map<CityWithoutPointOfInterestDto>(city));
+            }
         }
     }
 }

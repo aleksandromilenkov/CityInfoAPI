@@ -10,6 +10,11 @@ namespace CityInfo.API.Repositories {
         public CityInfoRepository(ApplicationDbContext context) {
             _context = context;
         }
+
+        public async Task<bool> CityExistsAsync(int cityId) {
+            return await _context.Cities.AnyAsync(c => c.Id == cityId);
+        }
+
         public async Task<IEnumerable<City>> GetCitiesAsync() {
             return await _context.Cities.OrderBy(c => c.Name).ToListAsync();
         }

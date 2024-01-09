@@ -1,4 +1,5 @@
-﻿using CityInfo.API.Interface;
+﻿using AutoMapper;
+using CityInfo.API.Interface;
 using CityInfo.API.Models;
 using CityInfo.API.Services;
 using Microsoft.AspNetCore.JsonPatch;
@@ -11,23 +12,28 @@ namespace CityInfo.API.Controllers {
         private readonly ICitiesDataBase _citiesDataBase;
         private readonly ILogger<PointsOfInterestController> _logger;
         private readonly IMailService _mailService;
+        private readonly IMapper _mapper;
+        private readonly ICityInfoRepository _cityInfoRepository;
 
-        public PointsOfInterestController(ICitiesDataBase citiesDataBase, ILogger<PointsOfInterestController> logger, IMailService mailService) {
+        public PointsOfInterestController(ICitiesDataBase citiesDataBase, ILogger<PointsOfInterestController> logger, IMailService mailService, IMapper mapper, ICityInfoRepository cityInfoRepository) {
             _citiesDataBase = citiesDataBase;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _mailService = mailService ?? throw new ArgumentNullException(nameof(mailService)); ;
+            _mailService = mailService ?? throw new ArgumentNullException(nameof(mailService));
+            _mapper = mapper;
+            _cityInfoRepository = cityInfoRepository;
         }
 
 
         [HttpGet]
-        public IActionResult GetPointsOfInterest([FromRoute] int cityId) {
+        public async Task<IActionResult> GetPointsOfInterest([FromRoute] int cityId) {
             try {
-                var city = _citiesDataBase.Cities.FirstOrDefault(c => c.Id == cityId);
-                if (city == null) {
+                var cityExists = await _cityInfoRepository.CityExistsAsync(cityId);
+                if (!cityExists) {
                     _logger.LogInformation($"City with id {cityId} cannot be found.");
                     return NotFound();
                 }
-                return Ok(city.PointsOfInterest);
+                var pointOfInterests = _mapper.Map<IEnumerable<PointOfInterestDto>>(await _cityInfoRepository.GetPointsOfInterestForCityAsync(cityId));
+                return Ok(pointOfInterests);
             }
             catch (Exception e) {
                 _logger.LogCritical($"Exception while getting points of interest for city with id {cityId}.");
@@ -36,16 +42,16 @@ namespace CityInfo.API.Controllers {
         }
 
         [HttpGet("{pointOfInterestId}", Name = "GetPointOfInterest")]
-        public IActionResult GetPointsOfInterest([FromRoute] int pointOfInterestId, int cityId) {
-            var city = _citiesDataBase.Cities.FirstOrDefault(c => c.Id == cityId);
-            if (city == null) {
+        public async Task<IActionResult> GetPointOfInterest([FromRoute] int pointOfInterestId, int cityId) {
+            var city = await _cityInfoRepository.CityExistsAsync(cityId);
+            if (!city) {
                 return NotFound();
             }
-            var point = city.PointsOfInterest.Where(p => p.Id == pointOfInterestId).FirstOrDefault();
+            var point = await _cityInfoRepository.GetPointOfInterestForCityAsync(cityId, pointOfInterestId);
             if (point == null) {
                 return NotFound();
             }
-            return Ok(point);
+            return Ok(_mapper.Map<PointOfInterestDto>(point));
         }
 
         [HttpPost]
