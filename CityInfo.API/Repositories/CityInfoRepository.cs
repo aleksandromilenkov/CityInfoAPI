@@ -26,6 +26,10 @@ namespace CityInfo.API.Repositories {
             return await _context.Cities.FirstOrDefaultAsync(c => c.Id == cityId);
         }
 
+        public async Task<PointOfInterest?> GetPointOfInterestForCityAsNoTracking(int cityId, int pointOfInterestId) {
+            return await _context.PointOfInterests.Where(p => p.Id == pointOfInterestId && p.CityId == cityId).AsNoTracking().FirstOrDefaultAsync();
+        }
+
         public async Task<PointOfInterest?> GetPointOfInterestForCityAsync(int cityId, int pointOfInterestId) {
             return await _context.PointOfInterests.FirstOrDefaultAsync(p => p.Id == pointOfInterestId && p.CityId == cityId);
         }
