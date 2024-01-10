@@ -9,6 +9,7 @@ namespace CityInfo.API.Interface {
         Task<PointOfInterest?> GetPointOfInterestForCityAsync(int cityId, int pointOfInterestId);
         Task<PointOfInterest?> GetPointOfInterestForCityAsNoTracking(int cityId, int pointOfInterestId);
         Task<bool> CityExistsAsync(int cityId);
+        Task<bool> Save();
 
     }
 }
