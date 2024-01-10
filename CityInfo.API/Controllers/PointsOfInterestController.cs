@@ -1,26 +1,27 @@
 ﻿using AutoMapper;
+using CityInfo.API.Entities;
 using CityInfo.API.Interface;
 using CityInfo.API.Models;
 using CityInfo.API.Services;
-using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CityInfo.API.Controllers {
     [Route("api/cities/{cityId}/[controller]")]
     [ApiController]
     public class PointsOfInterestController : ControllerBase {
-        private readonly ICitiesDataBase _citiesDataBase;
         private readonly ILogger<PointsOfInterestController> _logger;
         private readonly IMailService _mailService;
         private readonly IMapper _mapper;
         private readonly ICityInfoRepository _cityInfoRepository;
+        private readonly IPointOfInterestRepository _pointOfInterestRepository;
 
-        public PointsOfInterestController(ICitiesDataBase citiesDataBase, ILogger<PointsOfInterestController> logger, IMailService mailService, IMapper mapper, ICityInfoRepository cityInfoRepository) {
-            _citiesDataBase = citiesDataBase;
+        public PointsOfInterestController(ILogger<PointsOfInterestController> logger, IMailService mailService, IMapper mapper, ICityInfoRepository cityInfoRepository, IPointOfInterestRepository pointOfInterestRepository) {
+
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _mailService = mailService ?? throw new ArgumentNullException(nameof(mailService));
             _mapper = mapper;
             _cityInfoRepository = cityInfoRepository;
+            _pointOfInterestRepository = pointOfInterestRepository;
         }
 
 
@@ -55,25 +56,26 @@ namespace CityInfo.API.Controllers {
         }
 
         [HttpPost]
-        public IActionResult CreatePointsOfInterest(int cityId, [FromBody] PointOfInterestForCreationDto pointOfInterest) {
+        public async Task<IActionResult> CreatePointsOfInterest(int cityId, [FromBody] PointOfInterestForCreationDto pointOfInterest) {
             if (!ModelState.IsValid) {
                 return BadRequest();
             }
-            var city = _citiesDataBase.Cities.FirstOrDefault(c => c.Id == cityId);
-            if (city == null) {
+            var city = await _cityInfoRepository.CityExistsAsync(cityId);
+            if (!city) {
                 return NotFound();
             }
-            // for now demo calculating the id:
-            var maxPointsOfInterestId = _citiesDataBase.Cities.SelectMany(c => c.PointsOfInterest).Max(p => p.Id);
-            var newPointOfInterest = new PointOfInterestDto() {
-                Id = ++maxPointsOfInterestId,
-                Name = pointOfInterest.Name,
-                Description = pointOfInterest.Description
-            };
-            city.PointsOfInterest.Add(newPointOfInterest);
-            return CreatedAtRoute("GetPointOfInterest", new { cityId = cityId, pointOfInterestId = newPointOfInterest.Id }, newPointOfInterest);
+            var pointOfInterestToBeCreated = _mapper.Map<PointOfInterest>(pointOfInterest);
+            var isCreated = await _pointOfInterestRepository.CreatePointOfInterest(cityId, pointOfInterestToBeCreated);
+            var createdPointOfInterestToReturn = _mapper.Map<PointOfInterestDto>(pointOfInterestToBeCreated);
+            if (isCreated) {
+                return CreatedAtRoute("GetPointOfInterest", new { cityId = cityId, pointOfInterestId = createdPointOfInterestToReturn.Id }, createdPointOfInterestToReturn);
+            }
+            else {
+                return BadRequest(ModelState);
+            }
         }
 
+        /*
         [HttpPut("{pointOfInterestId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
@@ -143,6 +145,8 @@ namespace CityInfo.API.Controllers {
                $"Point of interest {pointOfInterestFromStore.Name} with id {pointOfInterestFromStore.Id} was deleted.");
             return NoContent();
         }
+
+        /*
 
     }
 }

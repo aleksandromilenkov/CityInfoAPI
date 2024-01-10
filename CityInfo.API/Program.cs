@@ -21,6 +21,7 @@ builder.Services.AddControllers(options => {
 }).AddNewtonsoftJson().AddXmlDataContractSerializerFormatters();
 builder.Services.AddScoped<ICitiesDataBase, CitiesDataBase>();
 builder.Services.AddScoped<ICityInfoRepository, CityInfoRepository>();
+builder.Services.AddScoped<IPointOfInterestRepository, PointOfInterestRepository>();
 builder.Services.AddDbContext<ApplicationDbContext>(options => {
     options.UseSqlServer(builder.Configuration.GetConnectionString("CityInfoDbConnectionString"));
 });
