@@ -140,23 +140,23 @@ namespace CityInfo.API.Controllers {
             await _pointOfInterestRepository.Save();
             return NoContent();
         }
-        /*
+
         [HttpDelete("{pointOfInterestId}")]
-        public IActionResult DeletePointOfInterest(int cityId, int pointOfInterestId) {
-            var city = _citiesDataBase.Cities.FirstOrDefault(c => c.Id == cityId);
-            if (city == null) { return NotFound(); }
-            var pointOfInterestFromStore = city.PointsOfInterest.FirstOrDefault(p => p.Id == pointOfInterestId);
-            if (pointOfInterestFromStore == null) {
+        public async Task<IActionResult> DeletePointOfInterest(int cityId, int pointOfInterestId) {
+            var city = await _cityInfoRepository.CityExistsAsync(cityId);
+            if (!city) { return NotFound(); }
+            var pointOfInterestToDelete = await _cityInfoRepository.GetPointOfInterestForCityAsync(cityId, pointOfInterestId);
+            if (pointOfInterestToDelete == null) {
                 return NotFound();
             }
-            city.PointsOfInterest.Remove(pointOfInterestFromStore);
+            await _pointOfInterestRepository.DeletePointOfInterest(pointOfInterestToDelete);
             _mailService.Send(
                "Point of interest deleted.",
-               $"Point of interest {pointOfInterestFromStore.Name} with id {pointOfInterestFromStore.Id} was deleted.");
+               $"Point of interest {pointOfInterestToDelete.Name} with id {pointOfInterestToDelete.Id} was deleted.");
             return NoContent();
         }
 
-        */
+
 
     }
 }
