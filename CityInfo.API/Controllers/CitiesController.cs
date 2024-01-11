@@ -16,8 +16,8 @@ namespace CityInfo.API.Controllers {
         }
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<CityWithoutPointOfInterestDto>))]
-        public async Task<IActionResult> GetCities() {
-            var cities = _mapper.Map<IEnumerable<CityWithoutPointOfInterestDto>>(await _cityInfoRepository.GetCitiesAsync());
+        public async Task<IActionResult> GetCities([FromQuery] string? name) {
+            var cities = _mapper.Map<IEnumerable<CityWithoutPointOfInterestDto>>(await _cityInfoRepository.GetCitiesAsync(name));
             return Ok(cities);
         }
         [HttpGet("{cityId:int}")]
