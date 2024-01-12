@@ -1,12 +1,14 @@
 ﻿using AutoMapper;
 using CityInfo.API.Interface;
 using CityInfo.API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
 namespace CityInfo.API.Controllers {
-    [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+    [Route("api/[controller]")]
     public class CitiesController : ControllerBase {
         private readonly ICityInfoRepository _cityInfoRepository;
         private readonly IMapper _mapper;

@@ -5,7 +5,9 @@ using CityInfo.API.Repositories;
 using CityInfo.API.Services;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Text;
 
 Log.Logger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().WriteTo.File("logs/cityinfo.txt", rollingInterval: RollingInterval.Day).CreateLogger();
 
@@ -19,6 +21,19 @@ builder.Host.UseSerilog();
 builder.Services.AddControllers(options => {
     options.ReturnHttpNotAcceptable = true;
 }).AddNewtonsoftJson().AddXmlDataContractSerializerFormatters();
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer(options => {
+        options.TokenValidationParameters = new() {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Authentication:Issuer"],
+            ValidAudience = builder.Configuration["Authentication:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.ASCII.GetBytes(builder.Configuration["Authentication:SecretForKey"]))
+        };
+    }
+    );
 builder.Services.AddScoped<ICitiesDataBase, CitiesDataBase>();
 builder.Services.AddScoped<ICityInfoRepository, CityInfoRepository>();
 builder.Services.AddScoped<IPointOfInterestRepository, PointOfInterestRepository>();
@@ -37,6 +52,15 @@ builder.Services.AddTransient<IMailService, LocalMailService>();
 builder.Services.AddTransient<IMailService, CloudMailService>();
 #endif
 
+
+
+builder.Services.AddAuthorization(options => {
+    options.AddPolicy("MustBeFromAntwerp", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("city", "Antwerp");
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -45,7 +69,12 @@ if (app.Environment.IsDevelopment()) {
     app.UseSwaggerUI();
 }
 
+
 app.UseHttpsRedirection();
+
+app.UseRouting();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

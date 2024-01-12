@@ -9,7 +9,8 @@ namespace CityInfo.API.Controllers {
     [ApiController]
     public class AuthenticationController : ControllerBase {
         private readonly IConfiguration _configuration;
-        // I dont use this outside of this class, so I scoped it within this namespace:
+
+        // we won't use this outside of this class, so we can scope it to this namespace
         public class AuthenticationRequestBody {
             public string? UserName { get; set; }
             public string? Password { get; set; }
@@ -42,7 +43,6 @@ namespace CityInfo.API.Controllers {
                 throw new ArgumentNullException(nameof(configuration));
         }
 
-
         [HttpPost("authenticate")]
         public ActionResult<string> Authenticate(
             AuthenticationRequestBody authenticationRequestBody) {
@@ -61,11 +61,12 @@ namespace CityInfo.API.Controllers {
             var signingCredentials = new SigningCredentials(
                 securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claimsForToken = new List<Claim>();
-            claimsForToken.Add(new Claim("sub", user.UserId.ToString()));
-            claimsForToken.Add(new Claim("given_name", user.FirstName));
-            claimsForToken.Add(new Claim("family_name", user.LastName));
-            claimsForToken.Add(new Claim("city", user.City));
+            var claimsForToken = new List<Claim> {
+                new Claim("sub", user.UserId.ToString()),
+                new Claim("given_name", user.FirstName),
+                new Claim("family_name", user.LastName),
+                new Claim("city", user.City)
+            };
 
             var jwtSecurityToken = new JwtSecurityToken(
                 _configuration["Authentication:Issuer"],
@@ -93,7 +94,7 @@ namespace CityInfo.API.Controllers {
                 userName ?? "",
                 "Kevin",
                 "Dockx",
-                "Antwerp");
+                "New York City");
 
         }
     }
