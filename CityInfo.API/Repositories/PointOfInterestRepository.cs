@@ -10,6 +10,11 @@ namespace CityInfo.API.Repositories {
         public PointOfInterestRepository(ApplicationDbContext context) {
             _context = context;
         }
+
+        public async Task<bool> CityNameMatchesCityId(string? cityName, int cityId) {
+            return await _context.Cities.AnyAsync(c => c.Id == cityId && c.Name == cityName);
+        }
+
         public async Task<bool> CreatePointOfInterest(int cityId, PointOfInterest pointOfInterest) {
             var city = await _context.Cities.FirstOrDefaultAsync(c => c.Id == cityId);
             if (city != null) {
