@@ -26,6 +26,7 @@
     <PackageReference Include="serilog.sinks.console" Version="5.0.1" />
     <PackageReference Include="serilog.sinks.file" Version="5.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.15.0" />
   </ItemGroup>
 
   <ItemGroup>

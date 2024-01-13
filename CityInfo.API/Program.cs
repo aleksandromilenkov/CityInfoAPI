@@ -21,19 +21,7 @@ builder.Host.UseSerilog();
 builder.Services.AddControllers(options => {
     options.ReturnHttpNotAcceptable = true;
 }).AddNewtonsoftJson().AddXmlDataContractSerializerFormatters();
-builder.Services.AddAuthentication("Bearer")
-    .AddJwtBearer(options => {
-        options.TokenValidationParameters = new() {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Authentication:Issuer"],
-            ValidAudience = builder.Configuration["Authentication:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.ASCII.GetBytes(builder.Configuration["Authentication:SecretForKey"]))
-        };
-    }
-    );
+
 builder.Services.AddScoped<ICitiesDataBase, CitiesDataBase>();
 builder.Services.AddScoped<ICityInfoRepository, CityInfoRepository>();
 builder.Services.AddScoped<IPointOfInterestRepository, PointOfInterestRepository>();
@@ -52,14 +40,20 @@ builder.Services.AddTransient<IMailService, LocalMailService>();
 builder.Services.AddTransient<IMailService, CloudMailService>();
 #endif
 
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer(options => {
+        options.TokenValidationParameters = new() {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Authentication:Issuer"],
+            ValidAudience = builder.Configuration["Authentication:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.ASCII.GetBytes(builder.Configuration["Authentication:SecretForKey"]))
+        };
+    }
+    );
 
-
-builder.Services.AddAuthorization(options => {
-    options.AddPolicy("MustBeFromAntwerp", policy => {
-        policy.RequireAuthenticatedUser();
-        policy.RequireClaim("city", "Antwerp");
-    });
-});
 
 var app = builder.Build();
 
@@ -71,8 +65,6 @@ if (app.Environment.IsDevelopment()) {
 
 
 app.UseHttpsRedirection();
-
-app.UseRouting();
 
 app.UseAuthentication();
 
