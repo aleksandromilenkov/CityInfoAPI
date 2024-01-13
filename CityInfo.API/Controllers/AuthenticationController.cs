@@ -94,7 +94,7 @@ namespace CityInfo.API.Controllers {
                 userName ?? "",
                 "Kevin",
                 "Dockx",
-                "New York City");
+                "Antwerp");
 
         }
     }

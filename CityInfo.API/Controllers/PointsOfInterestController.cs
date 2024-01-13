@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CityInfo.API.Controllers {
     [Route("api/cities/{cityId}/[controller]")]
-    [Authorize]
+    [Authorize(Policy = "MustBeFromAntwerp")]
     [ApiController]
     public class PointsOfInterestController : ControllerBase {
         private readonly ILogger<PointsOfInterestController> _logger;
@@ -31,10 +31,6 @@ namespace CityInfo.API.Controllers {
         [HttpGet]
         public async Task<IActionResult> GetPointsOfInterest([FromRoute] int cityId) {
             try {
-                var cityName = User.Claims.FirstOrDefault(c => c.Type == "city")?.Value;
-                if (!await _pointOfInterestRepository.CityNameMatchesCityId(cityName, cityId)) {
-                    return Forbid();
-                }
                 var cityExists = await _cityInfoRepository.CityExistsAsync(cityId);
                 if (!cityExists) {
                     _logger.LogInformation($"City with id {cityId} cannot be found.");
