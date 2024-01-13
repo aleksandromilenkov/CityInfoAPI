@@ -37,6 +37,10 @@ namespace CityInfo.API.Controllers {
         /// <returns>An IActionResult</returns>
         /// <response code="200">Returns the requested city</response>
         [HttpGet("{cityId:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+
         public async Task<IActionResult> GetCity([FromRoute] int cityId, [FromQuery] bool includePointsOfInterest = false) {
             if (cityId <= 0) {
                 return BadRequest(ModelState);
