@@ -3,14 +3,14 @@ using CityInfo.API.Entities;
 using CityInfo.API.Interface;
 using CityInfo.API.Models;
 using CityInfo.API.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CityInfo.API.Controllers {
-    [Route("api/cities/{cityId}/[controller]")]
-    [Authorize(Policy = "MustBeFromAntwerp")]
+    [Route("api/v{version:apiVersion}/cities/{cityId}/[controller]")]
+    //[Authorize(Policy = "MustBeFromAntwerp")]
     [ApiController]
+    [ApiVersion("2.0")]
     public class PointsOfInterestController : ControllerBase {
         private readonly ILogger<PointsOfInterestController> _logger;
         private readonly IMailService _mailService;
@@ -31,6 +31,10 @@ namespace CityInfo.API.Controllers {
         [HttpGet]
         public async Task<IActionResult> GetPointsOfInterest([FromRoute] int cityId) {
             try {
+                //var cityName = User.Claims.FirstOrDefault(c => c.Type == "city")?.Value;
+                //if (!await _pointOfInterestRepository.CityNameMatchesCityId(cityName, cityId)) {
+                //    return Forbid();
+                //}
                 var cityExists = await _cityInfoRepository.CityExistsAsync(cityId);
                 if (!cityExists) {
                     _logger.LogInformation($"City with id {cityId} cannot be found.");
