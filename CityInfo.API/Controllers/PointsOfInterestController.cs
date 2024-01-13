@@ -3,12 +3,13 @@ using CityInfo.API.Entities;
 using CityInfo.API.Interface;
 using CityInfo.API.Models;
 using CityInfo.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CityInfo.API.Controllers {
     [Route("api/v{version:apiVersion}/cities/{cityId}/[controller]")]
-    //[Authorize(Policy = "MustBeFromAntwerp")]
+    [Authorize(Policy = "MustBeFromAntwerp")]
     [ApiController]
     [ApiVersion("2.0")]
     public class PointsOfInterestController : ControllerBase {
