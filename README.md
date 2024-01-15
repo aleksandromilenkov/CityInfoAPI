@@ -1,4 +1,4 @@
-#CityInfo API Made with ASP.NET Web API 6  
+#CityInfo REST API Made with ASP.NET Web API 6  
 In this API you can find 2 entities: City and PointOfInterest  
 All Cities have their own PointOfInterest, so there is 1 to many relationship between them.  
 I'm using Microsoft SQL Server for the database.  
