@@ -83,12 +83,9 @@ namespace CityInfo.API.Controllers {
         }
 
         private CityInfoUser ValidateUserCredentials(string? userName, string? password) {
-            // we don't have a user DB or table.  If you have, check the passed-through
-            // username/password against what's stored in the database.
-            //
+            // we don't have a user DB or table.  
             // For demo purposes, we assume the credentials are valid
-
-            // return a new CityInfoUser (values would normally come from your user DB/table)
+            // return a new CityInfoUser 
             return new CityInfoUser(
                 1,
                 userName ?? "",
